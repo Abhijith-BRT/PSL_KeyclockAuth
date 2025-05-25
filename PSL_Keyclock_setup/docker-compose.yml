@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: psl_auth_postgres
+    environment:
+      POSTGRES_DB: pslauth
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: P@ssw0rd
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.3
+    container_name: keycloak_server
+    command: start-dev
+    ports:
+      - "8080:8080"
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres/pslauth
+      KC_DB_USERNAME: admin
+      KC_DB_PASSWORD: P@ssw0rd
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
