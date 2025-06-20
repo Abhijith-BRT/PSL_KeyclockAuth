@@ -19,7 +19,7 @@ async function configureKeycloakStrategy() {
       clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
       callbackURL: process.env.KEYCLOAK_REDIRECT_URI,
       scope: 'openid profile email'
-    }, function(issuer, sub, profile, accessToken, refreshToken, done) {
+    }, function(issuer, sub, profile, accessToken, refreshToken, params, done) {
       console.log('Authentication successful!');
       console.log('User profile:', profile);
       console.log('Access token received:', !!accessToken);

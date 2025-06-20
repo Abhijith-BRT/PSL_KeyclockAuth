@@ -1,33 +1,28 @@
 const express = require('express');
-const session = require('express-session');
-const passport = require('passport');
-const configureKeycloakStrategy = require('./auth/keycloakStrategy');
-const authRoutes = require('./routes/auth');
 const cors = require('cors');
+const { expressjwt: jwt } = require('express-jwt');
+const jwksRsa = require('jwks-rsa');
 
 const app = express();
-app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 
-app.use(session({
-    secret: 'sessionSecret',
-    resave: false,
-    saveUninitialized: false
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true
 }));
 
-app.use(passport.initialize());
-app.use(passport.session());
-
-app.use('/auth', authRoutes);
-
-app.get('/profile', (req, res) => {
-    if (!req.isAuthenticated()) {
-        console.log('Unauthenticated access to /profile');
-        return res.status(401).send('Not logged in');
-    }
-    console.log('Authenticated user:', req.user);
-    res.json(req.user);
+const checkJwt = jwt({
+  secret: jwksRsa.expressJwtSecret({
+    cache: true,
+    rateLimit: true,
+    jwksUri: 'http://192.168.200.120:8080/realms/PSL_Realm_I/protocol/openid-connect/certs'
+  }),
+  audience: 'PSL_OIDC_Client',
+  issuer: 'http://192.168.200.120:8080/realms/PSL_Realm_I',
+  algorithms: ['RS256']
 });
 
-configureKeycloakStrategy().then(() => {
-    app.listen(5000, () => console.log('Node backend on http://localhost:5000'));
+app.get('/profile', checkJwt, (req, res) => {
+  res.json({ message: 'Token valid', user: req.user });
 });
+
+app.listen(5000, '0.0.0.0', () => console.log('Resource server running on http://192.168.200.120:5000'));
