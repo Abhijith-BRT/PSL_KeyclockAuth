@@ -1,17 +1,31 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
 import Head from 'next/head';
+import userManager from '../utils/authConfig';
+import axios from 'axios';
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    axios.get('http://localhost:5000/profile', { withCredentials: true })
-      .then(res => setUser(res.data))
-      .catch(() => setUser(null));
+    userManager.getUser().then((user) => {
+      if (user && !user.expired) {
+        setUser(user.profile);
+        axios.get('http://192.168.200.120:5000/profile', {
+          headers: {
+            Authorization: `Bearer ${user.access_token}`
+          }
+        }).then(res => {
+          console.log('Profile data from backend:', res.data);
+        }).catch(err => {
+          console.error('API error:', err);
+        });
+      } else {
+        userManager.signinRedirect(); // redirect again if token expired
+      }
+    });
   }, []);
 
-  if (!user) return <p style={{ textAlign: 'center', marginTop: '5rem' }}>Not logged in. Redirecting...</p>;
+  if (!user) return <p>Loading user info...</p>;
 
   return (
     <>
@@ -21,20 +35,19 @@ export default function Dashboard() {
       <main style={{ textAlign: 'center', marginTop: '5rem' }}>
         <h1>Welcome, {user.name || user.preferred_username}</h1>
         <pre>{JSON.stringify(user, null, 2)}</pre>
-        <a
-          href="http://localhost:5000/auth/logout"
+        <button
+          onClick={() => userManager.signoutRedirect()}
           style={{
             padding: "8px 16px",
             backgroundColor: "red",
             color: "white",
-            textDecoration: "none",
+            border: "none",
             borderRadius: "4px",
-            marginTop: "1rem",
-            display: "inline-block"
+            cursor: "pointer"
           }}
         >
           Logout
-        </a>
+        </button>
       </main>
     </>
   );
