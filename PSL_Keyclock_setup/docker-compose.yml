@@ -1,31 +1,39 @@
-version: '3'
+version: '3.8'
 
 services:
   postgres:
     image: postgres:14
-    container_name: psl_auth_postgres
+    container_name: keycloak_postgres
+    restart: always
     environment:
-      POSTGRES_DB: pslauth
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: P@ssw0rd
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak123
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
   keycloak:
     image: quay.io/keycloak/keycloak:24.0.3
     container_name: keycloak_server
-    command: start-dev
-    ports:
-      - "8080:8080"
+    command: start
     environment:
       KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
+      KEYCLOAK_ADMIN_PASSWORD: '$MrbsBrt$ys'
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgres/pslauth
-      KC_DB_USERNAME: admin
-      KC_DB_PASSWORD: P@ssw0rd
+      KC_DB_URL_HOST: postgres
+      KC_DB_DATABASE: keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak123
+      # Add the following:
+      KC_HOSTNAME: auth.panl.mrbstest.com
+      KC_PROXY: edge
+    ports:
+      - "8080:8080"
     depends_on:
       - postgres
+    volumes:
+      - ./keycloak_theme:/opt/keycloak/themes
 
 volumes:
   postgres_data:
+
