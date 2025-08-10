@@ -16,6 +16,7 @@ services:
     image: quay.io/keycloak/keycloak:24.0.3
     container_name: keycloak_server
     command: start
+    restart: always
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: '$MrbsBrt$ys'
@@ -31,6 +32,7 @@ services:
       - "8080:8080"
     depends_on:
       - postgres
+      condition: service_healthy
     volumes:
       - ./keycloak_theme:/opt/keycloak/themes
 
